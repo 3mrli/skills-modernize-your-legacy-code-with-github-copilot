@@ -75,3 +75,54 @@ MainProgram
               |
               +--> DataProgram: WRITE balance (successful changes only)
 ```
+
+## Data Flow Sequence
+
+```mermaid
+sequenceDiagram
+  actor Student
+  participant MainProgram
+  participant Operations
+  participant DataProgram
+
+  Student->>MainProgram: Start application
+  loop Until Exit is selected
+    MainProgram-->>Student: Display account menu
+    Student->>MainProgram: Enter menu choice
+
+    alt View balance (1)
+      MainProgram->>Operations: CALL TOTAL
+      Operations->>DataProgram: CALL READ(balance)
+      DataProgram-->>Operations: Return stored balance
+      Operations-->>Student: Display current balance
+    else Credit account (2)
+      MainProgram->>Operations: CALL CREDIT
+      Operations-->>Student: Request credit amount
+      Student->>Operations: Enter amount
+      Operations->>DataProgram: CALL READ(balance)
+      DataProgram-->>Operations: Return stored balance
+      Operations->>Operations: Add amount to balance
+      Operations->>DataProgram: CALL WRITE(updated balance)
+      DataProgram-->>Operations: Store updated balance
+      Operations-->>Student: Display new balance
+    else Debit account (3)
+      MainProgram->>Operations: CALL DEBIT
+      Operations-->>Student: Request debit amount
+      Student->>Operations: Enter amount
+      Operations->>DataProgram: CALL READ(balance)
+      DataProgram-->>Operations: Return stored balance
+
+      alt Sufficient funds
+        Operations->>Operations: Subtract amount from balance
+        Operations->>DataProgram: CALL WRITE(updated balance)
+        DataProgram-->>Operations: Store updated balance
+        Operations-->>Student: Display new balance
+      else Insufficient funds
+        Operations-->>Student: Display rejection message
+      end
+    else Exit (4)
+      MainProgram->>MainProgram: Set continue flag to NO
+    end
+  end
+  MainProgram-->>Student: Display goodbye message
+```
